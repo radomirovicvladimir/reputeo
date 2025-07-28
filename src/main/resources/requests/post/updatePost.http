@@ -1,0 +1,6 @@
+PATCH http://localhost:8080/api/posts/14/content
+Content-Type: application/json
+
+{
+  "content": "Updated content with corrections"
+}

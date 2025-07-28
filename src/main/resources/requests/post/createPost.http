@@ -1,0 +1,10 @@
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "title": "Olujna mecavina u Prestonici",
+  "content": "U glavnom gradu se očekuje velika oluja sa jakim vetrom i obilnim padavinama.",
+  "postType": "TEXT",
+  "externalLink": "https://example.com",
+  "author": "Miki"
+}

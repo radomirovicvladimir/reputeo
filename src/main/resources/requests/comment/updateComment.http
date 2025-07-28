@@ -1,0 +1,8 @@
+PUT http://localhost:8080/api/comments/105
+Content-Type: application/json
+
+{
+  "content": "Updated comment text",
+  "author": "UpdatedAuthor",
+  "profilePicture": "https://newavatar.com/user.png"
+}

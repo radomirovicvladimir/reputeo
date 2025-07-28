@@ -1,0 +1,8 @@
+POST http://localhost:8080/api/posts/12/comments
+Content-Type: application/json
+
+{
+  "content": "This is a top-level comment",
+  "author": "Commenter1",
+  "profilePicture": "https://avatar.com/commenter1.png"
+}
