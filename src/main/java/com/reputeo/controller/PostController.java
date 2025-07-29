@@ -3,6 +3,7 @@ package com.reputeo.controller;
 import com.reputeo.dto.request.*;
 import com.reputeo.dto.response.*;
 import com.reputeo.service.PostService;
+import com.reputeo.service.RecaptchaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,11 +19,17 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final RecaptchaService recaptchaService;
 
     @PostMapping
-    public ResponseEntity<PostResponse> createPost(
-            @Valid @RequestBody PostCreateRequest request
+    public ResponseEntity<?> createPost(
+            @Valid @RequestBody PostCreateRequest request,
+            @RequestParam("recaptchaToken") String recaptchaToken
     ) {
+        if (!recaptchaService.verifyToken(recaptchaToken)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid reCAPTCHA token");
+        }
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(postService.createPost(request));
     }

@@ -14,7 +14,7 @@ public class KeanuService {
     private final WebClient webClient;
 
     public KeanuService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.build(); // No base URL since you're calling full URL
+        this.webClient = webClientBuilder.build();
     }
 
     public String getRandomWhoaMoment() {

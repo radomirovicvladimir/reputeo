@@ -7,7 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "comments", indexes = {
+        @Index(name = "idx_comments_post_parent", columnList = "post_id, parentComment_id"), // new
+        @Index(name = "idx_comments_parent", columnList = "parentComment_id"), // new
+        @Index(name = "idx_comments_created", columnList = "createdAt") // new
+                                    })
 @Data
 @Builder
 @NoArgsConstructor

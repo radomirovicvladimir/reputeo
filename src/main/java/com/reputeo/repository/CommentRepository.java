@@ -28,11 +28,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT COUNT(c) > 0 FROM Comment c WHERE c.parentComment.id = :parentId")
     boolean hasMoreReplies(@Param("parentId") Long parentId);
 
-    @Query("SELECT c FROM Comment c WHERE c.parentComment.id IN :parentIds")
-    List<Comment> findDirectRepliesByParentIds(
-            @Param("parentIds") List<Long> parentIds
-    );
-
-    @Query("SELECT COUNT(c) FROM Comment c WHERE c.parentComment.id = :parentId")
-    long countByParentCommentId(@Param("parentId") Long parentId);
+    @Query("SELECT c FROM Comment c WHERE c.parentComment.id IN :parentIds ORDER BY c.createdAt ASC")
+    List<Comment> findDirectRepliesByParentIds(@Param("parentIds") List<Long> parentIds);
 }

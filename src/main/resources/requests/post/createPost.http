@@ -1,4 +1,4 @@
-POST http://localhost:8080/api/posts
+POST http://localhost:8080/api/posts?recaptchaToken=your_recaptcha_token_here
 Content-Type: application/json
 
 {

@@ -2,7 +2,9 @@ package com.reputeo.controller;
 
 import com.reputeo.dto.request.CommentRequest;
 import com.reputeo.dto.response.CommentResponse;
+import com.reputeo.model.Comment;
 import com.reputeo.service.CommentService;
+import com.reputeo.service.RecaptchaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,12 +21,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentController {
     private final CommentService commentService;
+    private final RecaptchaService recaptchaService;
 
     @PostMapping("/api/posts/{postId}/comments")
-    public ResponseEntity<CommentResponse> createComment(
+    public ResponseEntity<?> createComment(
             @PathVariable Long postId,
-            @Valid @RequestBody CommentRequest request
+            @Valid @RequestBody CommentRequest request,
+            @RequestParam("recaptchaToken") String recaptchaToken
     ) {
+        if (!recaptchaService.verifyToken(recaptchaToken)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid reCAPTCHA token");
+        }
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(commentService.createComment(postId, request));
     }
@@ -46,7 +54,7 @@ public class CommentController {
     }
 
     @PutMapping("/api/comments/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(
+    public ResponseEntity<Comment> updateComment(
             @PathVariable Long commentId,
             @Valid @RequestBody CommentRequest request
     ) {

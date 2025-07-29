@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "posts", indexes = @Index(name = "idx_posts_active", columnList = "isDeleted, createdAt"))
+@Table(name = "posts", indexes = {
+        @Index(name = "idx_posts_active", columnList = "isDeleted, createdAt"),
+        @Index(name = "idx_posts_author", columnList = "author, isDeleted, createdAt DESC")
+                                })
 @Getter
 @Setter
 @Builder

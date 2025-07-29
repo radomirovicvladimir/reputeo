@@ -52,7 +52,6 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-        // Get nested comments with pagination
         Page<CommentResponse> commentsPage = commentService.getNestedComments(postId, pageable);
 
         return PostWithCommentsResponse.builder()
@@ -82,14 +81,6 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
         post.setDeleted(true);
-
-        /*
-        post.setContent("[deleted]");
-        post.setAuthor("[deleted]");
-        post.setProfilePicture("/default-deleted.png");
-        post.setExternalLink(null);
-        post.setKeanuMoment(null);
-        */
 
         postRepository.save(post);
     }

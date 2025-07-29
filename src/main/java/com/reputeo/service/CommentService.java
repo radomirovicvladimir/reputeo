@@ -9,6 +9,8 @@ import com.reputeo.model.Post;
 import com.reputeo.repository.CommentRepository;
 import com.reputeo.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,13 +27,17 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CommentService {
+    private static final Logger logger = LoggerFactory.getLogger(CommentService.class);
+
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final PostRepository postRepository;
     private static final int MAX_NESTING = 5;
 
     @Transactional
-    public CommentResponse createComment(Long postId, CommentRequest request) {
+    public Comment createComment(Long postId, CommentRequest request) {
+        logger.info("Creating comment on postId={} with parentCommentId={}", postId, request.getParentCommentId());
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
@@ -55,11 +61,12 @@ public class CommentService {
 
         comment = commentRepository.save(comment);
 
-        return buildMinimalCommentResponse(comment);
+        return comment;
     }
 
     @Transactional(readOnly = true)
     public Page<CommentResponse> getNestedComments(Long postId, Pageable pageable) {
+        logger.info("Fetching nested comments for postId={} with pageable={}", postId, pageable);
         Page<Comment> topLevelPage = commentRepository.findTopLevelByPostId(postId, pageable);
 
         List<CommentResponse> responses = topLevelPage.getContent().stream()
@@ -76,10 +83,7 @@ public class CommentService {
     }
 
     private void buildNestedReplies(List<CommentResponse> commentResponses, int currentLevel) {
-        if (currentLevel > MAX_NESTING || commentResponses.isEmpty()) {
-            return;
-        }
-
+        logger.debug("Building nested replies at level {} for {} comments", currentLevel, commentResponses.size());
         List<Long> parentIds = commentResponses.stream()
                 .map(CommentResponse::getId)
                 .collect(Collectors.toList());
@@ -98,7 +102,8 @@ public class CommentService {
                     .collect(Collectors.toList());
 
             parent.setReplies(childResponses);
-            parent.setHasMoreReplies(commentRepository.hasMoreReplies(parent.getId()));
+            parent.setHasMoreReplies(!childResponses.isEmpty());
+
 
             for (CommentResponse child : childResponses) {
                 responseMap.put(child.getId(), child);
@@ -108,30 +113,38 @@ public class CommentService {
         if (!responseMap.isEmpty() && currentLevel < MAX_NESTING) {
             buildNestedReplies(new ArrayList<>(responseMap.values()), currentLevel + 1);
         }
+        else{
+            for (CommentResponse child : responseMap.values()) {
+                child.setReplies(null);
+                child.setHasMoreReplies(commentRepository.hasMoreReplies(child.getId()));
+            }
+        }
+
     }
 
     @Transactional(readOnly = true)
     public Page<CommentResponse> getDirectReplies(Long parentId, Pageable pageable) {
+        logger.info("Fetching direct replies for parentId={} with pageable={}", parentId, pageable);
         Page<Comment> repliesPage = commentRepository.findDirectRepliesByParentId(parentId, pageable);
 
         return repliesPage.map(comment -> {
             CommentResponse response = commentMapper.toResponse(comment);
-            response.setReplies(new ArrayList<>());
 
-            // Check if this reply has its own replies
-            boolean hasReplies = commentRepository.countByParentCommentId(comment.getId()) > 0;
-            response.setHasMoreReplies(hasReplies);
+            response.setReplies(new ArrayList<>());
+            response.setHasMoreReplies(commentRepository.hasMoreReplies(comment.getId()));
 
             return response;
         });
     }
 
     @Transactional
-    public CommentResponse updateComment(Long commentId, CommentRequest request) {
+    public Comment updateComment(Long commentId, CommentRequest request) {
+        logger.info("Updating comment with id={}", commentId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
 
         if (comment.isDeleted()) {
+            logger.warn("Attempted to update a deleted comment with id={}", commentId);
             throw new IllegalStateException("Cannot update a deleted comment");
         }
 
@@ -144,18 +157,13 @@ public class CommentService {
         }
 
         comment = commentRepository.save(comment);
-        return buildMinimalCommentResponse(comment);
-    }
 
-    private CommentResponse buildMinimalCommentResponse(Comment comment) {
-        CommentResponse response = commentMapper.toResponse(comment);
-        response.setReplies(new ArrayList<>());
-        response.setHasMoreReplies(false);
-        return response;
+        return comment;
     }
 
     @Transactional
     public void softDeleteComment(Long commentId) {
+        logger.info("Soft deleting comment with id={}", commentId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
 
