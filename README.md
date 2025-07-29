@@ -2,10 +2,15 @@
 
 Created Reddit lookalike application with 4chan Anonymous status ( without User account registration ).
 
-My vision of application is to have simple nested comment forum, like reddit, but without likes. 
-User can create comment or post without registration ( but has to solve Captcha to confirm he is not robot ).
-Nested comments work like on reddit, max level of nesting is 5, after that you have to click on "Continue thread" to see more nested replies. If there are more than 5 replies to comment, user has to click "Load more replies".
-Using captcha we can have Anonymous status like on 4chan with prevention against spam, but have more readable comment section like reddit.
+What was on my mind? 🧠
+
+4chan is good anonymous forum, where you can have discussion about any topic while being completely anonymous. BUT, 4chan has awful comment UX. That is where Reddit nested comments step up.
+I implemented nested comments to have max nesting of 5 level, after which you must continue with a thread similar to reddit. Every time there is more than 5 comments in horizontal or vertical, you must load more comments, so I can protect of performance drop.
+What I overlooked is that anonymous user can not edit/delete their comments, because at that moment I was more fixated at register/login Account based application, where you can have non unique Display name.
+
+Implemented captcha and rate-limiter to solve problem of scripting/bot accounts ruining experience of everyone.
+
+This application is in pure development stage, so it can not be used in production.
 
 To start this application 
 
